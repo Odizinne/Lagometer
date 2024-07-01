@@ -1,6 +1,7 @@
 import sys
 import ping3
 import time
+import platform
 from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QIcon, QAction
@@ -19,9 +20,14 @@ class PingDisplayApp(QtWidgets.QMainWindow):
             self.progressBar_5, self.progressBar_6, self.progressBar_7, self.progressBar_8,
             self.progressBar_9, self.progressBar_10
         ]
-
-        for progressBar in self.progressBars:
-            progressBar.setMaximum(200)
+        print(platform.system())
+        if platform.system() == "Windows":
+            for progressBar in self.progressBars:
+                progressBar.setMaximum(200)
+                progressBar.setInvertedAppearance(False)
+        else:
+            for progressBar in self.progressBars:
+                progressBar.setMaximum(200)
 
         self.pingLabel = self.findChild(QtWidgets.QLabel, 'pingLabel')
 
@@ -31,7 +37,6 @@ class PingDisplayApp(QtWidgets.QMainWindow):
 
         self.update_count = 0
 
-        # Add system tray icon
         self.tray_icon = QSystemTrayIcon(self)
         self.tray_icon.setIcon(QIcon('icons/icon.png'))
 
