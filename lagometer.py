@@ -3,6 +3,8 @@ import ping3
 import time
 from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import QTimer
+from PyQt6.QtGui import QIcon, QAction
+from PyQt6.QtWidgets import QSystemTrayIcon, QMenu
 
 class PingDisplayApp(QtWidgets.QMainWindow):
     def __init__(self):
@@ -28,6 +30,31 @@ class PingDisplayApp(QtWidgets.QMainWindow):
         self.timer.start(1000)
 
         self.update_count = 0
+
+        # Add system tray icon
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(QIcon('icons/icon.png'))
+
+        show_action = QAction("Show", self)
+        hide_action = QAction("Hide", self)
+        exit_action = QAction("Exit", self)
+
+        show_action.triggered.connect(self.show_window)
+        hide_action.triggered.connect(self.hide_window)
+        exit_action.triggered.connect(self.exit_application)
+
+        tray_menu = QMenu()
+        tray_menu.addAction(show_action)
+        tray_menu.addAction(hide_action)
+        tray_menu.addAction(exit_action)
+
+        self.tray_icon.setContextMenu(tray_menu)
+        self.tray_icon.activated.connect(self.on_tray_icon_activated)
+
+        self.tray_icon.show()
+
+        # Override the closeEvent to hide the window instead of closing
+        self.closeEvent = self.hide_window_on_close
 
     def update_ping(self):
         timeout = 1
@@ -59,8 +86,39 @@ class PingDisplayApp(QtWidgets.QMainWindow):
                 self.sliders[i].setValue(self.sliders[i + 1].value())
             self.sliders[9].setValue(slider_value)
 
+    def show_window(self):
+        self.show()
+        self.raise_()
+        self.activateWindow()
+
+    def hide_window(self):
+        self.hide()
+
+    def exit_application(self):
+        self.tray_icon.hide()
+        QtWidgets.QApplication.quit()
+
+    def hide_window_on_close(self, event):
+        event.ignore()
+        self.hide()
+        self.tray_icon.showMessage(
+            "Lagometer",
+            "The application is still running. Right-click the tray icon for options.",
+            QSystemTrayIcon.MessageIcon.Information,
+            2000
+        )
+
+    def on_tray_icon_activated(self, reason):
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
+            if self.isVisible():
+                self.hide_window()
+            else:
+                self.show_window()
+
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(False)  # Prevent quitting the app when the window is closed
+
     window = PingDisplayApp()
     window.show()
     sys.exit(app.exec())
