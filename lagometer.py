@@ -40,6 +40,8 @@ class PingDisplayApp(QtWidgets.QMainWindow):
 
         self.setFixedSize(self.size())
         self.setWindowTitle('Lagometer')
+        icon_path = "icons/icon.png"
+        self.setWindowIcon(QIcon(icon_path))
 
         self.progressBars = [
             self.progressBar, self.progressBar_2, self.progressBar_3, self.progressBar_4,
