@@ -22,7 +22,6 @@ class PingDisplayApp(QtWidgets.QMainWindow):
 
         for progressBar in self.progressBars:
             progressBar.setMaximum(200)
-            progressBar.hide()
 
         self.pingLabel = self.findChild(QtWidgets.QLabel, 'pingLabel')
 
@@ -32,6 +31,7 @@ class PingDisplayApp(QtWidgets.QMainWindow):
 
         self.update_count = 0
 
+        # Add system tray icon
         self.tray_icon = QSystemTrayIcon(self)
         self.tray_icon.setIcon(QIcon('icons/icon.png'))
 
@@ -74,12 +74,11 @@ class PingDisplayApp(QtWidgets.QMainWindow):
                 ping_value = round(ping)
                 self.pingLabel.setText(f"Ping: {ping_value} ms")
                 break
-
+            
         progressBar_value = min(ping_value, 200) if ping_value is not None else 200
 
         if self.update_count < 10:
             self.progressBars[self.update_count].setValue(progressBar_value)
-            self.progressBars[self.update_count].show()
             self.update_count += 1
         else:
             for i in range(9):
