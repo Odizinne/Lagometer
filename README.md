@@ -1,5 +1,5 @@
 # Lagometer
-PyQt6 ping app using sliders to display ping because why not.
+PyQt6 ping app.
 
 ![image](https://github.com/Odizinne/Lagometer/assets/102679854/9fbeefdb-661a-4583-a9be-4b4153c2dc24)
 
