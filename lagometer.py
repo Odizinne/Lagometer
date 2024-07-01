@@ -3,9 +3,35 @@ import ping3
 import time
 import platform
 from PyQt6 import QtWidgets, uic
-from PyQt6.QtCore import QTimer
+from PyQt6.QtCore import QTimer, QThread, pyqtSignal
 from PyQt6.QtGui import QIcon, QAction
-from PyQt6.QtWidgets import QSystemTrayIcon, QMenu, QProgressBar
+from PyQt6.QtWidgets import QSystemTrayIcon, QMenu
+
+class PingWorker(QThread):
+    ping_result = pyqtSignal(int)
+
+    def run(self):
+        timeout = 1
+        start_time = time.time()
+
+        ping_value = None
+
+        while (time.time() - start_time) < timeout:
+            ping = ping3.ping('google.com', unit='ms')
+
+            if ping is None or ping is False:
+                ping_value = 200
+                break
+            elif ping == 0.0:
+                continue
+            else:
+                ping_value = round(ping)
+                break
+            
+        if ping_value is None:
+            ping_value = 200
+
+        self.ping_result.emit(ping_value)
 
 class PingDisplayApp(QtWidgets.QMainWindow):
     def __init__(self):
@@ -20,7 +46,6 @@ class PingDisplayApp(QtWidgets.QMainWindow):
             self.progressBar_5, self.progressBar_6, self.progressBar_7, self.progressBar_8,
             self.progressBar_9, self.progressBar_10
         ]
-        print(platform.system())
         if platform.system() == "Windows":
             for progressBar in self.progressBars:
                 progressBar.setMaximum(200)
@@ -32,7 +57,7 @@ class PingDisplayApp(QtWidgets.QMainWindow):
         self.pingLabel = self.findChild(QtWidgets.QLabel, 'pingLabel')
 
         self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_ping)
+        self.timer.timeout.connect(self.start_ping)
         self.timer.start(1000)
 
         self.update_count = 0
@@ -60,27 +85,15 @@ class PingDisplayApp(QtWidgets.QMainWindow):
 
         self.closeEvent = self.hide_window_on_close
 
-    def update_ping(self):
-        timeout = 1
-        start_time = time.time()
+    def start_ping(self):
+        self.ping_thread = PingWorker()
+        self.ping_thread.ping_result.connect(self.update_ui_with_ping)
+        self.ping_thread.start()
 
-        ping_value = None
+    def update_ui_with_ping(self, ping_value):
+        self.pingLabel.setText(f"Ping: {ping_value} ms")
 
-        while (time.time() - start_time) < timeout:
-            ping = ping3.ping('google.com', unit='ms')
-
-            if ping is None or ping is False:
-                ping_value = 200
-                self.pingLabel.setText("Connection lost")
-                break
-            elif ping == 0.0:
-                continue
-            else:
-                ping_value = round(ping)
-                self.pingLabel.setText(f"Ping: {ping_value} ms")
-                break
-            
-        progressBar_value = min(ping_value, 200) if ping_value is not None else 200
+        progressBar_value = min(ping_value, 200)
 
         if self.update_count < 10:
             self.progressBars[self.update_count].setValue(progressBar_value)
@@ -89,6 +102,10 @@ class PingDisplayApp(QtWidgets.QMainWindow):
             for i in range(9):
                 self.progressBars[i].setValue(self.progressBars[i + 1].value())
             self.progressBars[9].setValue(progressBar_value)
+
+        self.pingLabel.update()
+        for progressBar in self.progressBars:
+            progressBar.update()
 
     def show_window(self):
         self.show()
