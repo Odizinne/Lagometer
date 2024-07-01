@@ -8,8 +8,6 @@ build_exe_options = {
 base = None
 if sys.platform == "win32":
     base = "Win32GUI"
-elif sys.platform == "linux":
-    base = "Qt6"
 
 executables = [
     Executable("lagometer.py", base=base, icon=None)
