@@ -4,7 +4,7 @@ import time
 from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QIcon, QAction
-from PyQt6.QtWidgets import QSystemTrayIcon, QMenu
+from PyQt6.QtWidgets import QSystemTrayIcon, QMenu, QProgressBar
 
 class PingDisplayApp(QtWidgets.QMainWindow):
     def __init__(self):
@@ -14,14 +14,15 @@ class PingDisplayApp(QtWidgets.QMainWindow):
         self.setFixedSize(self.size())
         self.setWindowTitle('Lagometer')
 
-        self.sliders = [
-            self.verticalSlider, self.verticalSlider_2, self.verticalSlider_3, self.verticalSlider_4,
-            self.verticalSlider_5, self.verticalSlider_6, self.verticalSlider_7, self.verticalSlider_8,
-            self.verticalSlider_9, self.verticalSlider_10
+        self.progressBars = [
+            self.progressBar, self.progressBar_2, self.progressBar_3, self.progressBar_4,
+            self.progressBar_5, self.progressBar_6, self.progressBar_7, self.progressBar_8,
+            self.progressBar_9, self.progressBar_10
         ]
 
-        for slider in self.sliders:
-            slider.setMaximum(200)
+        for progressBar in self.progressBars:
+            progressBar.setMaximum(200)
+            progressBar.hide()
 
         self.pingLabel = self.findChild(QtWidgets.QLabel, 'pingLabel')
 
@@ -31,7 +32,6 @@ class PingDisplayApp(QtWidgets.QMainWindow):
 
         self.update_count = 0
 
-        # Add system tray icon
         self.tray_icon = QSystemTrayIcon(self)
         self.tray_icon.setIcon(QIcon('icons/icon.png'))
 
@@ -53,7 +53,6 @@ class PingDisplayApp(QtWidgets.QMainWindow):
 
         self.tray_icon.show()
 
-        # Override the closeEvent to hide the window instead of closing
         self.closeEvent = self.hide_window_on_close
 
     def update_ping(self):
@@ -75,16 +74,17 @@ class PingDisplayApp(QtWidgets.QMainWindow):
                 ping_value = round(ping)
                 self.pingLabel.setText(f"Ping: {ping_value} ms")
                 break
-            
-        slider_value = min(ping_value, 200) if ping_value is not None else 200
+
+        progressBar_value = min(ping_value, 200) if ping_value is not None else 200
 
         if self.update_count < 10:
-            self.sliders[self.update_count].setValue(slider_value)
+            self.progressBars[self.update_count].setValue(progressBar_value)
+            self.progressBars[self.update_count].show()
             self.update_count += 1
         else:
             for i in range(9):
-                self.sliders[i].setValue(self.sliders[i + 1].value())
-            self.sliders[9].setValue(slider_value)
+                self.progressBars[i].setValue(self.progressBars[i + 1].value())
+            self.progressBars[9].setValue(progressBar_value)
 
     def show_window(self):
         self.show()
@@ -101,12 +101,6 @@ class PingDisplayApp(QtWidgets.QMainWindow):
     def hide_window_on_close(self, event):
         event.ignore()
         self.hide()
-        self.tray_icon.showMessage(
-            "Lagometer",
-            "The application is still running. Right-click the tray icon for options.",
-            QSystemTrayIcon.MessageIcon.Information,
-            2000
-        )
 
     def on_tray_icon_activated(self, reason):
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
@@ -117,7 +111,7 @@ class PingDisplayApp(QtWidgets.QMainWindow):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(False)  # Prevent quitting the app when the window is closed
+    app.setQuitOnLastWindowClosed(False)
 
     window = PingDisplayApp()
     window.show()
