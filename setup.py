@@ -6,14 +6,15 @@ build_dir = "build/Lagometer"
 base = None
 
 if sys.platform == "win32":
-    build_dir = os.path.join(os.getenv('LOCALAPPDATA'), "programs", "Lagometer")
+    #build_dir = os.path.join(os.getenv('LOCALAPPDATA'), "programs", "Lagometer")
     base = "Win32GUI"
 
 system_icon = "icons/icon.ico" if sys.platform == "win32" else "icons/icon.png"
 
 build_exe_options = {
     "include_files": ["design.ui", "icons/"],
-    "build_exe": build_dir
+    "build_exe": build_dir,
+    "zip_include_packages": ["PyQt6", "ping3"]
 }
 
 executables = [
