@@ -134,6 +134,8 @@ class PingDisplayApp(QtWidgets.QMainWindow):
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
+    if platform.system() == "Windows":
+        app.setStyle('Fusion')
     app.setQuitOnLastWindowClosed(False)
 
     window = PingDisplayApp()
