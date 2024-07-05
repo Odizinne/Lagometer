@@ -6,6 +6,7 @@ from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import QTimer, QThread, pyqtSignal
 from PyQt6.QtGui import QIcon, QAction
 from PyQt6.QtWidgets import QSystemTrayIcon, QMenu
+from design import Ui_MainWindow
 
 class PingWorker(QThread):
     ping_result = pyqtSignal(int)
@@ -33,10 +34,10 @@ class PingWorker(QThread):
 
         self.ping_result.emit(ping_value)
 
-class PingDisplayApp(QtWidgets.QMainWindow):
+class PingDisplayApp(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(PingDisplayApp, self).__init__()
-        uic.loadUi('design.ui', self)
+        self.setupUi(self)
 
         self.setFixedSize(self.size())
         self.setWindowTitle('Lagometer')
