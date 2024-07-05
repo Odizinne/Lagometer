@@ -2,10 +2,9 @@ import sys
 import ping3
 import time
 import platform
-from PyQt6 import QtWidgets, uic
 from PyQt6.QtCore import QTimer, QThread, pyqtSignal
 from PyQt6.QtGui import QIcon, QAction
-from PyQt6.QtWidgets import QSystemTrayIcon, QMenu
+from PyQt6.QtWidgets import QSystemTrayIcon, QMenu, QMainWindow, QLabel, QApplication
 from design import Ui_MainWindow
 
 class PingWorker(QThread):
@@ -34,7 +33,7 @@ class PingWorker(QThread):
 
         self.ping_result.emit(ping_value)
 
-class PingDisplayApp(QtWidgets.QMainWindow, Ui_MainWindow):
+class PingDisplayApp(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(PingDisplayApp, self).__init__()
         self.setupUi(self)
@@ -57,7 +56,7 @@ class PingDisplayApp(QtWidgets.QMainWindow, Ui_MainWindow):
             for progressBar in self.progressBars:
                 progressBar.setMaximum(200)
 
-        self.pingLabel = self.findChild(QtWidgets.QLabel, 'pingLabel')
+        self.pingLabel = self.findChild(QLabel, 'pingLabel')
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.start_ping)
@@ -120,7 +119,7 @@ class PingDisplayApp(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def exit_application(self):
         self.tray_icon.hide()
-        QtWidgets.QApplication.quit()
+        QApplication.quit()
 
     def hide_window_on_close(self, event):
         event.ignore()
@@ -134,7 +133,7 @@ class PingDisplayApp(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.show_window()
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
     if platform.system() == "Windows":
         app.setStyle('Fusion')
     app.setQuitOnLastWindowClosed(False)
