@@ -7,6 +7,7 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QScreen>
+#include <QSettings>
 
 Lagometer::Lagometer(QWidget *parent)
     : QWidget(parent)
@@ -24,6 +25,12 @@ Lagometer::Lagometer(QWidget *parent)
     connect(PingService::getInstance(), &PingService::isRunningChanged,
             this, &Lagometer::updatePauseResumeText);
     updatePauseResumeText();
+
+    QSettings settings("Odizinne", "Lagometer");
+    if (!settings.value("firstRunCompleted", false).toBool()) {
+        emit requestSettingsWindow();
+        settings.setValue("firstRunCompleted", true);
+    }
 }
 
 Lagometer::~Lagometer()
