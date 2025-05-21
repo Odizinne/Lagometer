@@ -158,6 +158,37 @@ ApplicationWindow {
                         }
                     }
                 }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 35
+                    Label {
+                        text: "Flyout shortcut (Ctrl+Alt+Key)"
+                        Layout.fillWidth: true
+                    }
+
+                    TextField {
+                        id: shortcutField
+                        maximumLength: 1
+                        placeholderText: "Key"
+                        text: UserSettings.shortcutKey
+                        implicitWidth: 50
+                        horizontalAlignment: TextInput.AlignHCenter
+
+                        onTextChanged: {
+                            if (text.length === 1) {
+                                let upperKey = text.toUpperCase()
+                                text = upperKey
+                                UserSettings.shortcutKey = upperKey
+                                globalShortcut.updateShortcut(upperKey)
+                            }
+                        }
+
+                        Component.onCompleted: {
+                            text = UserSettings.shortcutKey
+                        }
+                    }
+                }
             }
         }
     }
