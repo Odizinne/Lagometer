@@ -8,4 +8,5 @@ Settings {
     property int positionIndex: 0
     property int colorIndex: 0
     property bool showFlyoutOnStartup: true
+    property real windowScale: 1.0
 }

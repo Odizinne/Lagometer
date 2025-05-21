@@ -16,6 +16,8 @@ ApplicationWindow {
         anchors.margins: 15
         spacing: 10
 
+        property int labelWidth: Math.max(opacityLabel.implicitWidth, sizeLabel.implicitWidth)
+
         Label {
             text: "Flyout settings"
             font.pixelSize: 16
@@ -35,6 +37,8 @@ ApplicationWindow {
                     Layout.preferredHeight: 35
                     Label {
                         text: "Opacity"
+                        id: opacityLabel
+                        Layout.preferredWidth: mainLyt.labelWidth
                     }
 
                     Slider {
@@ -45,6 +49,27 @@ ApplicationWindow {
                         Layout.fillWidth: true
                         onValueChanged: {
                             UserSettings.opacity = value
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 35
+                    Label {
+                        text: "Size"
+                        id: sizeLabel
+                        Layout.preferredWidth: mainLyt.labelWidth
+                    }
+
+                    Slider {
+                        from: 0.5
+                        to: 1.5
+                        value: UserSettings.windowScale
+                        Layout.rightMargin: -10
+                        Layout.fillWidth: true
+                        onValueChanged: {
+                            UserSettings.windowScale = value
                         }
                     }
                 }

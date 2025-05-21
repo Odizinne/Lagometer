@@ -7,8 +7,11 @@ import Odizinne.Lagometer
 
 ApplicationWindow {
     id: root
-    width: 500
-    height: 300
+    property int baseWidth: 500
+    property int baseHeight: 300
+
+    width: baseWidth * UserSettings.windowScale
+    height: baseHeight * UserSettings.windowScale
     visible: true
     title: "Lagometer"
     color: "transparent"
@@ -58,6 +61,15 @@ ApplicationWindow {
 
         function onColorIndexChanged() {
             root.updateChartColors()
+        }
+
+        function onWindowScaleChanged() {
+            // Update window size
+            root.width = root.baseWidth * UserSettings.windowScale
+            root.height = root.baseHeight * UserSettings.windowScale
+
+            // Reposition to maintain the same corner position
+            positionFlyout()
         }
     }
 
