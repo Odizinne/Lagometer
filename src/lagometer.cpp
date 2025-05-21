@@ -21,7 +21,6 @@ Lagometer::Lagometer(QWidget *parent)
     flyoutEngine->rootContext()->setContextProperty("lagometer", this);
     qmlRegisterSingletonInstance<PingService>("Odizinne.Ping", 1, 0, "PingService", PingService::getInstance());
     flyoutEngine->loadFromModule("Odizinne.Lagometer", "Main");
-
 }
 
 Lagometer::~Lagometer()
@@ -45,6 +44,8 @@ void Lagometer::configureTrayIcon() {
     trayMenu->addAction(quitAction);
     trayIcon->setContextMenu(trayMenu);
     trayIcon->show();
+
+    connect(trayIcon, &QSystemTrayIcon::activated, this, &Lagometer::trayIconActivated);
 }
 
 void Lagometer::showSettingsPage() {
@@ -60,7 +61,7 @@ void Lagometer::toggleWindow() {
 }
 
 void Lagometer::updateToggleActionText() {
-    toggleAction->setText(m_windowVisible ? "Hide" : "Show");
+    toggleAction->setText(windowVisible() ? "Hide" : "Show");
 }
 
 bool Lagometer::isShortcutPresent()
@@ -88,4 +89,11 @@ void Lagometer::manageShortcut(bool state)
 QRect Lagometer::availablePrimaryScreenGeometry() const {
     QScreen* screen = QGuiApplication::primaryScreen();
     return screen ? screen->availableGeometry() : QRect();
+}
+
+void Lagometer::trayIconActivated(QSystemTrayIcon::ActivationReason reason)
+{
+    if (reason == QSystemTrayIcon::ActivationReason::Trigger) {
+        toggleWindow();
+    }
 }

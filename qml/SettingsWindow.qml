@@ -111,6 +111,24 @@ ApplicationWindow {
                         }
                     }
                 }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 35
+                    Label {
+                        text: "Show flyout on app startup"
+                        Layout.fillWidth: true
+                    }
+
+                    Switch {
+                        onClicked: {
+                            UserSettings.showFlyoutOnStartup = checked
+                        }
+                        Component.onCompleted: {
+                            checked = UserSettings.showFlyoutOnStartup
+                        }
+                    }
+                }
             }
         }
     }

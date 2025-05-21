@@ -7,4 +7,5 @@ Settings {
     property real opacity: 1
     property int positionIndex: 0
     property int colorIndex: 0
+    property bool showFlyoutOnStartup: true
 }

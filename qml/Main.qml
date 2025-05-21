@@ -55,6 +55,10 @@ ApplicationWindow {
         function onPositionIndexChanged() {
             root.positionFlyout()
         }
+
+        function onColorIndexChanged() {
+            root.updateChartColors()
+        }
     }
 
     Connections {
@@ -103,12 +107,16 @@ ApplicationWindow {
         maxPingValue = currentMax > 0 ? currentMax * 1.2 : 100
         axisY.max = maxPingValue
 
-        for (let i = 0; i < pingData.length; i++) {
-            pingLineSeries.append(i, pingData[i])
-        }
+        // Calculate appropriate X value scaling
+        const totalSeconds = 60  // Match with axisX.max
+        const pointSpacing = totalSeconds / (maxDataPoints - 1)
 
-        axisX.min = 0
-        axisX.max = maxDataPoints - 1
+        // Plot points with time on X-axis
+        for (let i = 0; i < pingData.length; i++) {
+            // Scale index to match our 60-second axis
+            let timePoint = i * pointSpacing
+            pingLineSeries.append(timePoint, pingData[i])
+        }
     }
 
     function showFlyout() {
@@ -122,6 +130,26 @@ ApplicationWindow {
 
     function hideFlyout() {
         fadeOut.start()
+    }
+
+    function getColorForIndex(index) {
+        const colors = [
+            { line: "#00AAFF", area: Qt.rgba(0, 0.67, 1, 0.3) },    // Blue
+            { line: "#FF3333", area: Qt.rgba(1, 0.2, 0.2, 0.3) },   // Red
+            { line: "#33CC33", area: Qt.rgba(0.2, 0.8, 0.2, 0.3) }, // Green
+            { line: "#9933CC", area: Qt.rgba(0.6, 0.2, 0.8, 0.3) }, // Purple
+            { line: "#FF66CC", area: Qt.rgba(1, 0.4, 0.8, 0.3) },   // Pink
+            { line: "#FFCC00", area: Qt.rgba(1, 0.8, 0, 0.3) },     // Yellow
+            { line: "#FF9933", area: Qt.rgba(1, 0.6, 0.2, 0.3) }    // Orange
+        ]
+
+        return colors[Math.min(index, colors.length - 1)]
+    }
+
+    function updateChartColors() {
+        const colors = getColorForIndex(UserSettings.colorIndex)
+        pingAreaSeries.borderColor = colors.line
+        pingAreaSeries.color = colors.area
     }
 
     function positionFlyout() {
@@ -178,9 +206,12 @@ ApplicationWindow {
         PingService.startPinging()
 
         positionFlyout()
+        updateChartColors()
 
         root.opacity = 0.0
-        fadeIn.start()
+        if (UserSettings.showFlyoutOnStartup) {
+            fadeIn.start()
+        }
     }
 
     Component.onDestruction: {
@@ -191,33 +222,47 @@ ApplicationWindow {
         id: chartView
         anchors.fill: parent
         antialiasing: true
-        backgroundColor: "transparent"
+        backgroundColor: "#313131"
         legend.visible: false
+        backgroundRoundness: 12
+        plotAreaColor: "#232323"
 
         Rectangle {
-            id: customBackground
-            anchors.fill: parent
-            color: "#282828"
-            radius: 12
-            z: -1
+            id: plotBorder
+            // This uses the actual plot area coordinates
+            x: chartView.plotArea.x
+            y: chartView.plotArea.y
+            width: chartView.plotArea.width
+            height: chartView.plotArea.height
+            color: "transparent"
             border.width: 1
-            border.color: "#777777"
+            border.color: "#888888"
+            z: 1
         }
 
         ValueAxis {
             id: axisX
-            visible: false
+            visible: true  // Make visible now
+            labelsVisible: false
+            labelsFont.pixelSize: 11
+            gridLineColor: "#666666"
+            minorGridLineColor: "#666666"
+            min: 0
+            max: 60
+            tickCount: 5
+            lineVisible: false
         }
 
         ValueAxis {
             id: axisY
             visible: true
-            labelFormat: "%d ms"
+            labelFormat: "%d ms  "
             labelsColor: "#FFFFFF"
             labelsFont.pixelSize: 11
-            labelsFont.bold: true
-            gridLineColor: "#888888"
-            minorGridLineColor: "#888888"
+            gridLineColor: "#666666"
+            minorGridLineColor: "#666666"
+            tickCount: 4
+            lineVisible: false
         }
 
         AreaSeries {

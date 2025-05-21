@@ -8,7 +8,6 @@
 #include <QAction>
 #include "globalshortcut.h"
 
-
 class Lagometer : public QWidget
 {
     Q_OBJECT
@@ -43,6 +42,7 @@ signals:
 
 private slots:
     void updateToggleActionText();
+    void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
 
 private:
     QQmlApplicationEngine *flyoutEngine;
