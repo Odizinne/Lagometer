@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QStandardPaths>
 #include <QDir>
+#include <QScreen>
 
 Lagometer::Lagometer(QWidget *parent)
     : QWidget(parent)
@@ -82,4 +83,9 @@ void Lagometer::manageShortcut(bool state)
     } else {
         QFile::remove(shortcutPath);
     }
+}
+
+QRect Lagometer::availablePrimaryScreenGeometry() const {
+    QScreen* screen = QGuiApplication::primaryScreen();
+    return screen ? screen->availableGeometry() : QRect();
 }

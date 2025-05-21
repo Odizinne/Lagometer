@@ -26,7 +26,7 @@ ApplicationWindow {
         from: 0
         to: UserSettings.opacity
         duration: 250
-        easing.type: Easing.OutQuad
+        easing.type: Easing.InQuad
     }
 
     NumberAnimation {
@@ -50,6 +50,10 @@ ApplicationWindow {
         target: UserSettings
         function onOpacityChanged() {
             root.opacity = UserSettings.opacity
+        }
+
+        function onPositionIndexChanged() {
+            root.positionFlyout()
         }
     }
 
@@ -112,7 +116,7 @@ ApplicationWindow {
         root.visible = true
         root.raise()
         root.requestActivate()
-        positionTopRight()
+        positionFlyout()
         fadeIn.start()
     }
 
@@ -120,11 +124,30 @@ ApplicationWindow {
         fadeOut.start()
     }
 
-    function positionTopRight() {
-        let currentScreen = Qt.application.screens[0]
+    function positionFlyout() {
+        let available = lagometer.availablePrimaryScreenGeometry()
+        let margin = 15
+        let xPos = 0
+        let yPos = 0
 
-        let xPos = currentScreen.width - root.width - 15
-        let yPos = 15
+        switch (UserSettings.positionIndex) {
+        case 0: // Top right
+            xPos = available.x + available.width - root.width - margin
+            yPos = available.y + margin
+            break
+        case 1: // Top left
+            xPos = available.x + margin
+            yPos = available.y + margin
+            break
+        case 2: // Bottom right
+            xPos = available.x + available.width - root.width - margin
+            yPos = available.y + available.height - root.height - margin
+            break
+        case 3: // Bottom left
+            xPos = available.x + margin
+            yPos = available.y + available.height - root.height - margin
+            break
+        }
 
         root.x = xPos
         root.y = yPos
@@ -154,7 +177,7 @@ ApplicationWindow {
         PingService.targetHost = "8.8.8.8"
         PingService.startPinging()
 
-        positionTopRight()
+        positionFlyout()
 
         root.opacity = 0.0
         fadeIn.start()

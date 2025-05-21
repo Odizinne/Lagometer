@@ -20,6 +20,7 @@ public:
 
     Q_INVOKABLE void manageShortcut(bool state);
     Q_INVOKABLE bool isShortcutPresent();
+    Q_INVOKABLE QRect availablePrimaryScreenGeometry() const;
 
     void setWindowVisible(const bool &status)
     {
