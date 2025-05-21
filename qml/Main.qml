@@ -210,7 +210,10 @@ ApplicationWindow {
 
         root.opacity = 0.0
         if (UserSettings.showFlyoutOnStartup) {
+            root.visible = true
             fadeIn.start()
+        } else {
+            root.visible = false
         }
     }
 
