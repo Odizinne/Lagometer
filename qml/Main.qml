@@ -64,12 +64,14 @@ ApplicationWindow {
         }
 
         function onWindowScaleChanged() {
-            // Update window size
             root.width = root.baseWidth * UserSettings.windowScale
             root.height = root.baseHeight * UserSettings.windowScale
 
-            // Reposition to maintain the same corner position
             positionFlyout()
+        }
+
+        function onTargetHostChanged() {
+            PingService.targetHost = UserSettings.targetHost
         }
     }
 
@@ -98,13 +100,10 @@ ApplicationWindow {
     }
 
     function clearChart() {
-        // Reset the ping data array
         pingData = []
 
-        // Clear the chart
         pingLineSeries.clear()
 
-        // Reset any chart state as needed
         maxPingValue = 100
         axisY.max = maxPingValue
     }
@@ -135,13 +134,10 @@ ApplicationWindow {
         maxPingValue = currentMax > 0 ? currentMax * 1.2 : 100
         axisY.max = maxPingValue
 
-        // Calculate appropriate X value scaling
-        const totalSeconds = 60  // Match with axisX.max
+        const totalSeconds = 60
         const pointSpacing = totalSeconds / (maxDataPoints - 1)
 
-        // Plot points with time on X-axis
         for (let i = 0; i < pingData.length; i++) {
-            // Scale index to match our 60-second axis
             let timePoint = i * pointSpacing
             pingLineSeries.append(timePoint, pingData[i])
         }
@@ -230,7 +226,7 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
-        PingService.targetHost = "8.8.8.8"
+        PingService.targetHost = UserSettings.targetHost
         PingService.startPinging()
 
         positionFlyout()
@@ -260,7 +256,6 @@ ApplicationWindow {
 
         Rectangle {
             id: plotBorder
-            // This uses the actual plot area coordinates
             x: chartView.plotArea.x
             y: chartView.plotArea.y
             width: chartView.plotArea.width
@@ -273,7 +268,7 @@ ApplicationWindow {
 
         ValueAxis {
             id: axisX
-            visible: true  // Make visible now
+            visible: true
             labelsVisible: false
             labelsFont.pixelSize: 11
             gridLineColor: "#666666"

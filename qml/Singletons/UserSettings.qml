@@ -10,4 +10,5 @@ Settings {
     property bool showFlyoutOnStartup: true
     property real windowScale: 1.0
     property string shortcutKey: "L"
+    property string targetHost: "8.8.8.8"
 }

@@ -189,6 +189,28 @@ ApplicationWindow {
                         }
                     }
                 }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 35
+                    Label {
+                        text: "Target host (IP or URL)"
+                        Layout.fillWidth: true
+                    }
+
+                    TextField {
+                        id: targetHostField
+                        placeholderText: "8.8.8.8"
+                        text: UserSettings.targetHost
+                        implicitWidth: 150
+
+                        onEditingFinished: {
+                            if (text.trim() !== "") {
+                                UserSettings.targetHost = text.trim()
+                            }
+                        }
+                    }
+                }
             }
         }
     }
