@@ -15,11 +15,13 @@ set(SOURCES
     src/main.cpp
     src/pingservice.cpp
     src/globalshortcut.cpp
+    src/lagometer.cpp
 )
 
 set(HEADERS
     include/pingservice.h
     include/globalshortcut.h
+    include/lagometer.h
 )
 
 qt_add_executable(${CMAKE_PROJECT_NAME}
