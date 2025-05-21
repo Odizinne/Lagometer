@@ -6,8 +6,12 @@ import Odizinne.Lagometer
 ApplicationWindow {
     title: "Lagometer settings"
     visible: false
-    width: 400
+    width: 450
+    minimumWidth: 450
+    maximumWidth: 450
     height: mainLyt.implicitHeight + 30
+    minimumHeight: mainLyt.implicitHeight + 30
+    maximumHeight: mainLyt.implicitHeight + 30
     transientParent: null
 
     ColumnLayout {
