@@ -39,6 +39,7 @@ signals:
     void requestShowWindow();
     void requestHideWindow();
     void requestSettingsWindow();
+    void requestClearChart();
 
 private slots:
     void updateToggleActionText();
@@ -55,6 +56,7 @@ private:
     QAction *toggleAction;
     QAction *settingsAction;
     QAction *pauseResumeAction;
+    QAction *clearChartAction;
 
     void configureTrayIcon();
     void toggleWindow();

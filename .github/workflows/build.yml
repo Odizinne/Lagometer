@@ -60,7 +60,13 @@ jobs:
           $zipFile = "build/Lagometer_msvc_64.zip"
           $folder = "build/Lagometer"
           Compress-Archive -Path $folder -DestinationPath $zipFile
-          
+
+      - name: Create Installer 
+        shell: pwsh
+        run: |
+          $env:Path += ";${env:ProgramFiles(x86)}\Inno Setup 6"
+          iscc.exe tools/installer.iss
+           
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:

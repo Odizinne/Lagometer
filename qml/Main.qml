@@ -91,6 +91,22 @@ ApplicationWindow {
         function onRequestSettingsWindow() {
             settingsWindow.visible = true
         }
+
+        function onRequestClearChart() {
+            clearChart()
+        }
+    }
+
+    function clearChart() {
+        // Reset the ping data array
+        pingData = []
+
+        // Clear the chart
+        pingLineSeries.clear()
+
+        // Reset any chart state as needed
+        maxPingValue = 100
+        axisY.max = maxPingValue
     }
 
     function performPing() {

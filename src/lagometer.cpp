@@ -36,6 +36,7 @@ void Lagometer::configureTrayIcon() {
     quitAction = new QAction("Quit", this);
     settingsAction = new QAction("Settings", this);
     toggleAction = new QAction("Show", this);
+    clearChartAction = new QAction("Clear Chart", this);
 
     bool isRunning = PingService::getInstance()->isRunning();
     pauseResumeAction = new QAction(isRunning ? "Pause" : "Resume", this);
@@ -44,10 +45,12 @@ void Lagometer::configureTrayIcon() {
     connect(settingsAction, &QAction::triggered, this, &Lagometer::showSettingsPage);
     connect(toggleAction, &QAction::triggered, this, &Lagometer::toggleWindow);
     connect(pauseResumeAction, &QAction::triggered, this, &Lagometer::togglePingService);
+    connect(clearChartAction, &QAction::triggered, this, &Lagometer::requestClearChart);
 
     trayMenu->addAction(toggleAction);
     trayMenu->addAction(pauseResumeAction);
     trayMenu->addAction(settingsAction);
+    trayMenu->addAction(clearChartAction);
     trayMenu->addSeparator();
     trayMenu->addAction(quitAction);
     trayIcon->setContextMenu(trayMenu);
