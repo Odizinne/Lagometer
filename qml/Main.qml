@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Window
 import QtCharts
-import QtQuick.Controls.Universal
+import QtQuick.Controls.FluentWinUI3
 import Odizinne.Ping
 import Odizinne.Lagometer
 
