@@ -66,6 +66,8 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     PRIVATE
     Qt6::Quick
     Qt6::Charts
+    iphlpapi
+    ws2_32
 )
 
 include(GNUInstallDirs)

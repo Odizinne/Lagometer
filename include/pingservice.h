@@ -1,10 +1,21 @@
 #ifndef PINGSERVICE_H
 #define PINGSERVICE_H
 
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#define _WIN32_WINNT 0x0601
+#define WIN32_LEAN_AND_MEAN
+
+#include <winsock2.h>
+#include <windows.h>
+#include <ws2tcpip.h>
+#include <iphlpapi.h>
+#include <icmpapi.h>
+
 #include <QObject>
-#include <QProcess>
 #include <QString>
 #include <QTimer>
+#include <QElapsedTimer>
+#include <QHostInfo>
 
 class PingService : public QObject
 {
@@ -17,7 +28,6 @@ class PingService : public QObject
 public:
     static PingService* getInstance();
 
-    // Properties
     double lastPingTime() const { return m_lastPingTime; }
     bool isRunning() const { return m_isRunning; }
     QString targetHost() const { return m_targetHost; }
@@ -26,7 +36,6 @@ public:
     void setTargetHost(const QString &host);
     void setInterval(int msec);
 
-    // Q_INVOKABLE methods for QML
     Q_INVOKABLE void startPinging();
     Q_INVOKABLE void stopPinging();
     Q_INVOKABLE void singlePing();
@@ -44,18 +53,15 @@ private:
     PingService& operator=(const PingService&) = delete;
 
     static PingService* m_instance;
-    QProcess m_pingProcess;
+
     QTimer m_pingTimer;
     double m_lastPingTime;
     bool m_isRunning;
     QString m_targetHost;
     int m_interval;
 
-    void parsePingOutput(const QString& output);
-
-private slots:
-    void onPingFinished(int exitCode, QProcess::ExitStatus exitStatus);
     void doPing();
+    double sendIcmpPing(const QString &host, int timeoutMs);
 };
 
 #endif // PINGSERVICE_H

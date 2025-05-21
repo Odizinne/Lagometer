@@ -1,5 +1,6 @@
 #include "pingservice.h"
-#include <QRegularExpression>
+#include <QHostAddress>
+#include <QHostInfo>
 #include <QDebug>
 
 PingService* PingService::m_instance = nullptr;
@@ -12,13 +13,13 @@ PingService* PingService::getInstance()
     return m_instance;
 }
 
-PingService::PingService(QObject *parent) : QObject(parent),
+PingService::PingService(QObject *parent)
+    : QObject(parent),
     m_lastPingTime(0.0),
     m_isRunning(false),
     m_targetHost("8.8.8.8"),
     m_interval(1000)
 {
-    connect(&m_pingProcess, &QProcess::finished, this, &PingService::onPingFinished);
     connect(&m_pingTimer, &QTimer::timeout, this, &PingService::doPing);
 }
 
@@ -50,7 +51,7 @@ void PingService::startPinging()
         m_pingTimer.setInterval(m_interval);
         m_pingTimer.start();
         emit isRunningChanged(true);
-        doPing(); // Do first ping immediately
+        doPing(); // First ping immediately
     }
 }
 
@@ -70,71 +71,57 @@ void PingService::singlePing()
 
 void PingService::doPing()
 {
-    if (m_pingProcess.state() == QProcess::Running) {
-        // Process is still running from the last ping, skip this one
-        return;
-    }
+    double time = sendIcmpPing(m_targetHost, 1000);
+    m_lastPingTime = time;
 
-    // Windows-specific ping command
-    QStringList args;
-    args << "-n" << "1" << "-w" << "1000" << m_targetHost;
-
-    m_pingProcess.start("ping", args);
-}
-
-void PingService::onPingFinished(int exitCode, QProcess::ExitStatus exitStatus)
-{
-    if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
-        QString output = QString::fromLocal8Bit(m_pingProcess.readAllStandardOutput());
-        parsePingOutput(output);
+    if (time > 0.0) {
+        emit lastPingTimeChanged(time);
     } else {
-        // Error occurred
-        QString errorMessage = QString::fromLocal8Bit(m_pingProcess.readAllStandardError());
-        if (errorMessage.isEmpty()) {
-            errorMessage = "Ping failed with exit code " + QString::number(exitCode);
-        }
-        emit pingError(errorMessage);
-
-        // Set a fallback value to indicate timeout
-        m_lastPingTime = -1.0;
-        emit lastPingTimeChanged(m_lastPingTime);
+        emit pingError("Ping failed");
+        emit lastPingTimeChanged(0.0);
     }
 }
 
-void PingService::parsePingOutput(const QString& output)
+double PingService::sendIcmpPing(const QString &host, int timeoutMs)
 {
-    QRegularExpression timeRegex("(?:time|zeit|temps|tiempo)\\s*=\\s*([0-9.]+)\\s*ms",
-                                 QRegularExpression::CaseInsensitiveOption);
+    HANDLE handle = IcmpCreateFile();
+    if (handle == INVALID_HANDLE_VALUE)
+        return 0.0;
 
-    QRegularExpressionMatch match = timeRegex.match(output);
-
-    if (match.hasMatch()) {
-        bool ok;
-        double pingTime = match.captured(1).toDouble(&ok);
-
-        if (ok) {
-            m_lastPingTime = pingTime;
-            emit lastPingTimeChanged(pingTime);
-        } else {
-            m_lastPingTime = -1.0;
-            emit lastPingTimeChanged(m_lastPingTime);
-        }
-    } else {
-        QRegularExpression statsRegex("(?:Average|Moyenne|Durchschnitt)\\s*=\\s*([0-9.]+)\\s*ms",
-                                      QRegularExpression::CaseInsensitiveOption);
-        match = statsRegex.match(output);
-
-        if (match.hasMatch()) {
-            bool ok;
-            double pingTime = match.captured(1).toDouble(&ok);
-            if (ok) {
-                m_lastPingTime = pingTime;
-                emit lastPingTimeChanged(pingTime);
-                return;
-            }
-        }
-
-        m_lastPingTime = -1.0;
-        emit lastPingTimeChanged(m_lastPingTime);
+    QHostInfo info = QHostInfo::fromName(host);
+    if (info.addresses().isEmpty()) {
+        IcmpCloseHandle(handle);
+        return 0.0;
     }
+
+    QString ipStr = info.addresses().first().toString();
+
+    IN_ADDR ipAddr;
+    if (InetPton(AF_INET, ipStr.toStdWString().c_str(), &ipAddr) != 1) {
+        IcmpCloseHandle(handle);
+        return 0.0;
+    }
+    DWORD ip = ipAddr.S_un.S_addr;
+
+    char data[] = "QtPing";
+    DWORD replySize = sizeof(ICMP_ECHO_REPLY) + sizeof(data);
+    void* replyBuffer = malloc(replySize);
+    if (!replyBuffer) {
+        IcmpCloseHandle(handle);
+        return 0.0;
+    }
+
+    DWORD result = IcmpSendEcho(handle, ip, data, sizeof(data), nullptr,
+                                replyBuffer, replySize, timeoutMs);
+
+    double time = 0.0;
+    if (result > 0) {
+        auto* reply = reinterpret_cast<PICMP_ECHO_REPLY>(replyBuffer);
+        if (reply->Status == IP_SUCCESS)
+            time = static_cast<double>(reply->RoundTripTime);
+    }
+
+    free(replyBuffer);
+    IcmpCloseHandle(handle);
+    return time;
 }
