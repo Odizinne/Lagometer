@@ -15,7 +15,7 @@ ApplicationWindow {
     visible: true
     title: "Lagometer"
     color: "transparent"
-    flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WindowTransparentForInput
+    flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     opacity: UserSettings.opacity
 
     property var pingData: []
