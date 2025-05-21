@@ -72,3 +72,9 @@ jobs:
         with:
           name: Lagometer_msvc_64
           path: build/Lagometer_msvc_64.zip
+
+      - name: Upload Installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: QuickSoundSwitcher_Installer
+          path: tools/Output/Lagometer_Installer.exe
