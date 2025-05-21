@@ -8,15 +8,40 @@
 #include <QAction>
 #include "globalshortcut.h"
 
-QT_BEGIN_NAMESPACE
 
 class Lagometer : public QWidget
 {
     Q_OBJECT
+    Q_PROPERTY(bool windowVisible READ windowVisible WRITE setWindowVisible NOTIFY windowVisibleChanged)
 
 public:
     Lagometer(QWidget *parent = nullptr);
     ~Lagometer();
+
+    Q_INVOKABLE void manageShortcut(bool state);
+    Q_INVOKABLE bool isShortcutPresent();
+
+    void setWindowVisible(const bool &status)
+    {
+        if (status != m_windowVisible) {
+            m_windowVisible = status;
+            emit windowVisibleChanged();
+        }
+    }
+
+    bool windowVisible() const
+    {
+        return m_windowVisible;
+    }
+
+signals:
+    void windowVisibleChanged();
+    void requestShowWindow();
+    void requestHideWindow();
+    void requestSettingsWindow();
+
+private slots:
+    void updateToggleActionText();
 
 private:
     QQmlApplicationEngine *flyoutEngine;
@@ -30,6 +55,8 @@ private:
     void configureTrayIcon();
     void toggleWindow();
     void showSettingsPage();
+
+    bool m_windowVisible;
 };
 
 #endif // LAGOMETER_H

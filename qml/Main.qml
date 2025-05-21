@@ -13,7 +13,7 @@ ApplicationWindow {
     title: "Lagometer"
     color: "transparent"
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
-    opacity: 0
+    opacity: UserSettings.opacity
 
     property var pingData: []
     property int maxDataPoints: 60
@@ -23,8 +23,8 @@ ApplicationWindow {
         id: fadeIn
         target: root
         property: "opacity"
-        from: UserSettings.opacity
-        to: 1
+        from: 0
+        to: UserSettings.opacity
         duration: 250
         easing.type: Easing.OutQuad
     }
@@ -33,12 +33,43 @@ ApplicationWindow {
         id: fadeOut
         target: root
         property: "opacity"
-        from: 1
-        to: UserSettings.opacity
+        from: UserSettings.opacity
+        to: 0
         duration: 250
         easing.type: Easing.InQuad
         onFinished: {
             root.visible = false
+        }
+    }
+
+    onVisibleChanged: {
+        lagometer.windowVisible = visible
+    }
+
+    Connections {
+        target: UserSettings
+        function onOpacityChanged() {
+            root.opacity = UserSettings.opacity
+        }
+    }
+
+    Connections {
+        target: lagometer
+
+        function onRequestShowWindow() {
+            if (!root.visible) {
+                showFlyout()
+            }
+        }
+
+        function onRequestHideWindow() {
+            if (root.visible) {
+                hideFlyout()
+            }
+        }
+
+        function onRequestSettingsWindow() {
+            settingsWindow.visible = true
         }
     }
 
@@ -76,18 +107,17 @@ ApplicationWindow {
         axisX.max = maxDataPoints - 1
     }
 
-    function toggleVisibility() {
-        if (root.visible) {
-            fadeOut.start()
-        } else {
-            root.opacity = 0.0
-            root.visible = true
-            root.raise()
-            root.requestActivate()
+    function showFlyout() {
+        root.opacity = 0.0
+        root.visible = true
+        root.raise()
+        root.requestActivate()
+        positionTopRight()
+        fadeIn.start()
+    }
 
-            positionTopRight()
-            fadeIn.start()
-        }
+    function hideFlyout() {
+        fadeOut.start()
     }
 
     function positionTopRight() {
@@ -103,7 +133,10 @@ ApplicationWindow {
     Connections {
         target: globalShortcut
         function onActivated() {
-            toggleVisibility()
+            if (root.visible)
+                hideFlyout()
+            else
+                showFlyout()
         }
     }
 

@@ -3,6 +3,9 @@
 #include <QApplication>
 #include <QQmlContext>
 #include <QIcon>
+#include <QFile>
+#include <QStandardPaths>
+#include <QDir>
 
 Lagometer::Lagometer(QWidget *parent)
     : QWidget(parent)
@@ -10,11 +13,14 @@ Lagometer::Lagometer(QWidget *parent)
     , shortcut(new GlobalShortcut(this))
     , trayIcon(new QSystemTrayIcon(this))
 {
+    connect(this, &Lagometer::windowVisibleChanged, this, &Lagometer::updateToggleActionText);
+    configureTrayIcon();
+
     flyoutEngine->rootContext()->setContextProperty("globalShortcut", shortcut);
+    flyoutEngine->rootContext()->setContextProperty("lagometer", this);
     qmlRegisterSingletonInstance<PingService>("Odizinne.Ping", 1, 0, "PingService", PingService::getInstance());
     flyoutEngine->loadFromModule("Odizinne.Lagometer", "Main");
 
-    configureTrayIcon();
 }
 
 Lagometer::~Lagometer()
@@ -41,9 +47,39 @@ void Lagometer::configureTrayIcon() {
 }
 
 void Lagometer::showSettingsPage() {
-
+    emit requestSettingsWindow();
 }
 
 void Lagometer::toggleWindow() {
+    if (m_windowVisible) {
+        emit requestHideWindow();
+    } else {
+        emit requestShowWindow();
+    }
+}
 
+void Lagometer::updateToggleActionText() {
+    toggleAction->setText(m_windowVisible ? "Hide" : "Show");
+}
+
+bool Lagometer::isShortcutPresent()
+{
+    QString shortcutName = "Lagometer.lnk";
+    QString startupPath = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) + QDir::separator() + "Startup";
+    QString shortcutPath = startupPath + QDir::separator() + shortcutName;
+    return QFile::exists(shortcutPath);
+}
+
+void Lagometer::manageShortcut(bool state)
+{
+    QString shortcutName = "Lagometer.lnk";
+    QString applicationPath = QCoreApplication::applicationFilePath();
+    QString startupPath = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) + QDir::separator() + "Startup";
+    QString shortcutPath = startupPath + QDir::separator() + shortcutName;
+
+    if (state) {
+        QFile::link(applicationPath, shortcutPath);
+    } else {
+        QFile::remove(shortcutPath);
+    }
 }
