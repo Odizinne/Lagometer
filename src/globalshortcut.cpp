@@ -3,7 +3,6 @@
 #include <QtDebug>
 #include <windows.h>
 
-// Unique ID for our hotkey
 #define HOTKEY_ID 1
 
 GlobalShortcut::GlobalShortcut(QObject *parent)
@@ -24,16 +23,13 @@ void GlobalShortcut::registerShortcut()
     if (registered)
         return;
 
-    // Ctrl+Alt+L
     UINT modifiers = MOD_CONTROL | MOD_ALT;
-    UINT vk = 'L';  // Virtual key for 'L'
+    UINT vk = 'L';
 
-    // Register the hotkey
     if (RegisterHotKey(nullptr, HOTKEY_ID, modifiers, vk)) {
         registered = true;
-        qDebug() << "Global shortcut Ctrl+Alt+L registered successfully";
     } else {
-        qWarning() << "Failed to register global shortcut Ctrl+Alt+L";
+        qWarning() << "Failed to register global shortcut";
     }
 }
 
@@ -44,7 +40,6 @@ void GlobalShortcut::unregisterShortcut()
 
     UnregisterHotKey(nullptr, HOTKEY_ID);
     registered = false;
-    qDebug() << "Global shortcut Ctrl+Alt+L unregistered";
 }
 
 bool GlobalShortcut::nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result)

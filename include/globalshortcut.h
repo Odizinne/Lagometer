@@ -12,7 +12,6 @@ public:
     explicit GlobalShortcut(QObject *parent = nullptr);
     ~GlobalShortcut();
 
-    // Changed long* to qintptr* to match Qt 6 signature
     bool nativeEventFilter(const QByteArray &eventType, void *message, qintptr *result) override;
 
 signals:

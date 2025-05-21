@@ -4,6 +4,8 @@
 #include <QWidget>
 #include <QQmlApplicationEngine>
 #include <QSystemTrayIcon>
+#include <QMenu>
+#include <QAction>
 #include "globalshortcut.h"
 
 QT_BEGIN_NAMESPACE
@@ -20,7 +22,14 @@ private:
     QQmlApplicationEngine *flyoutEngine;
     GlobalShortcut *shortcut;
     QSystemTrayIcon *trayIcon;
+    QMenu *trayMenu;
+    QAction *quitAction;
+    QAction *toggleAction;
+    QAction *settingsAction;
+
     void configureTrayIcon();
+    void toggleWindow();
+    void showSettingsPage();
 };
 
 #endif // LAGOMETER_H
