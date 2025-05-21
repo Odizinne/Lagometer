@@ -21,6 +21,9 @@ Lagometer::Lagometer(QWidget *parent)
     flyoutEngine->rootContext()->setContextProperty("lagometer", this);
     qmlRegisterSingletonInstance<PingService>("Odizinne.Ping", 1, 0, "PingService", PingService::getInstance());
     flyoutEngine->loadFromModule("Odizinne.Lagometer", "Main");
+    connect(PingService::getInstance(), &PingService::isRunningChanged,
+            this, &Lagometer::updatePauseResumeText);
+    updatePauseResumeText();
 }
 
 Lagometer::~Lagometer()
@@ -34,11 +37,16 @@ void Lagometer::configureTrayIcon() {
     settingsAction = new QAction("Settings", this);
     toggleAction = new QAction("Show", this);
 
+    bool isRunning = PingService::getInstance()->isRunning();
+    pauseResumeAction = new QAction(isRunning ? "Pause" : "Resume", this);
+
     connect(quitAction, &QAction::triggered, this, &QApplication::quit);
     connect(settingsAction, &QAction::triggered, this, &Lagometer::showSettingsPage);
     connect(toggleAction, &QAction::triggered, this, &Lagometer::toggleWindow);
+    connect(pauseResumeAction, &QAction::triggered, this, &Lagometer::togglePingService);
 
     trayMenu->addAction(toggleAction);
+    trayMenu->addAction(pauseResumeAction);
     trayMenu->addAction(settingsAction);
     trayMenu->addSeparator();
     trayMenu->addAction(quitAction);
@@ -46,6 +54,18 @@ void Lagometer::configureTrayIcon() {
     trayIcon->show();
 
     connect(trayIcon, &QSystemTrayIcon::activated, this, &Lagometer::trayIconActivated);
+}
+
+void Lagometer::togglePingService() {
+    if (PingService::getInstance()->isRunning()) {
+        PingService::getInstance()->stopPinging();
+    } else {
+        PingService::getInstance()->startPinging();
+    }
+}
+
+void Lagometer::updatePauseResumeText() {
+    pauseResumeAction->setText(PingService::getInstance()->isRunning() ? "Pause" : "Resume");
 }
 
 void Lagometer::showSettingsPage() {

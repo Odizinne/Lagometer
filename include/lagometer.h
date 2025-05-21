@@ -43,6 +43,8 @@ signals:
 private slots:
     void updateToggleActionText();
     void trayIconActivated(QSystemTrayIcon::ActivationReason reason);
+    void togglePingService();
+    void updatePauseResumeText();
 
 private:
     QQmlApplicationEngine *flyoutEngine;
@@ -52,6 +54,7 @@ private:
     QAction *quitAction;
     QAction *toggleAction;
     QAction *settingsAction;
+    QAction *pauseResumeAction;
 
     void configureTrayIcon();
     void toggleWindow();
