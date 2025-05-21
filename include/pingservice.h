@@ -16,6 +16,15 @@
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QHostInfo>
+#include <QFuture>
+#include <QFutureWatcher>
+
+// Define result structure for ping
+struct PingResult {
+    double time;         // Round trip time in ms (0 for timeout, -1 for other errors)
+    bool success;        // Was the ping successful?
+    QString errorString; // Error message if unsuccessful
+};
 
 class PingService : public QObject
 {
@@ -24,6 +33,7 @@ class PingService : public QObject
     Q_PROPERTY(bool isRunning READ isRunning NOTIFY isRunningChanged)
     Q_PROPERTY(QString targetHost READ targetHost WRITE setTargetHost NOTIFY targetHostChanged)
     Q_PROPERTY(int interval READ interval WRITE setInterval NOTIFY intervalChanged)
+    Q_PROPERTY(int timeout READ timeout WRITE setTimeout NOTIFY timeoutChanged)
 
 public:
     static PingService* getInstance();
@@ -32,9 +42,11 @@ public:
     bool isRunning() const { return m_isRunning; }
     QString targetHost() const { return m_targetHost; }
     int interval() const { return m_interval; }
+    int timeout() const { return m_timeout; }
 
     void setTargetHost(const QString &host);
     void setInterval(int msec);
+    void setTimeout(int msec);
 
     Q_INVOKABLE void startPinging();
     Q_INVOKABLE void stopPinging();
@@ -45,6 +57,7 @@ signals:
     void isRunningChanged(bool running);
     void targetHostChanged(QString host);
     void intervalChanged(int interval);
+    void timeoutChanged(int timeout);
     void pingError(QString errorMessage);
 
 private:
@@ -59,9 +72,11 @@ private:
     bool m_isRunning;
     QString m_targetHost;
     int m_interval;
+    int m_timeout;
+    QFutureWatcher<PingResult> m_futureWatcher;
 
     void doPing();
-    double sendIcmpPing(const QString &host, int timeoutMs);
+    static PingResult sendIcmpPing(const QString &host, int timeoutMs);
 };
 
 #endif // PINGSERVICE_H
