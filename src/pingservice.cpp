@@ -103,8 +103,9 @@ void PingService::onPingFinished(int exitCode, QProcess::ExitStatus exitStatus)
 
 void PingService::parsePingOutput(const QString& output)
 {
-    // Parse "time=xxms" from the ping output
-    QRegularExpression timeRegex("time=([0-9]+)ms");
+    QRegularExpression timeRegex("(?:time|zeit|temps|tiempo)\\s*=\\s*([0-9.]+)\\s*ms",
+                                 QRegularExpression::CaseInsensitiveOption);
+
     QRegularExpressionMatch match = timeRegex.match(output);
 
     if (match.hasMatch()) {
@@ -114,10 +115,25 @@ void PingService::parsePingOutput(const QString& output)
         if (ok) {
             m_lastPingTime = pingTime;
             emit lastPingTimeChanged(pingTime);
+        } else {
+            m_lastPingTime = -1.0;
+            emit lastPingTimeChanged(m_lastPingTime);
         }
     } else {
-        qDebug() << "Could not parse ping time from output:" << output;
-        // Set a fallback value to indicate timeout
+        QRegularExpression statsRegex("(?:Average|Moyenne|Durchschnitt)\\s*=\\s*([0-9.]+)\\s*ms",
+                                      QRegularExpression::CaseInsensitiveOption);
+        match = statsRegex.match(output);
+
+        if (match.hasMatch()) {
+            bool ok;
+            double pingTime = match.captured(1).toDouble(&ok);
+            if (ok) {
+                m_lastPingTime = pingTime;
+                emit lastPingTimeChanged(pingTime);
+                return;
+            }
+        }
+
         m_lastPingTime = -1.0;
         emit lastPingTimeChanged(m_lastPingTime);
     }
