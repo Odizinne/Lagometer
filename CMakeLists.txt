@@ -35,11 +35,23 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+set(QML_FILES
+    qml/Main.qml
+    qml/SettingsWindow.qml
+)
+
+set(QML_SINGLETONS
+    qml/Singletons/UserSettings.qml
+)
+
+set_source_files_properties(${QML_SINGLETONS}
+    PROPERTIES QT_QML_SINGLETON_TYPE TRUE
+)
+
 qt_add_qml_module(${CMAKE_PROJECT_NAME}
     URI Odizinne.Lagometer
     VERSION 1.0
-    QML_FILES
-        Main.qml
+    QML_FILES ${QML_FILES} ${QML_SINGLETONS}
 )
 
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES

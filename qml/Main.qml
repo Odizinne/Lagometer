@@ -1,8 +1,9 @@
 import QtQuick
 import QtQuick.Window
 import QtCharts
-import QtQuick.Controls.FluentWinUI3
+import QtQuick.Controls.Universal
 import Odizinne.Ping
+import Odizinne.Lagometer
 
 ApplicationWindow {
     id: root
@@ -10,6 +11,7 @@ ApplicationWindow {
     height: 300
     visible: true
     title: "Lagometer"
+    color: "transparent"
     flags: Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
     opacity: 0
 
@@ -17,12 +19,11 @@ ApplicationWindow {
     property int maxDataPoints: 60
     property double maxPingValue: 100
 
-    // Fade animations for window
     NumberAnimation {
         id: fadeIn
         target: root
         property: "opacity"
-        from: 0.0
+        from: UserSettings.opacity
         to: 1
         duration: 250
         easing.type: Easing.OutQuad
@@ -33,11 +34,10 @@ ApplicationWindow {
         target: root
         property: "opacity"
         from: 1
-        to: 0.0
+        to: UserSettings.opacity
         duration: 250
         easing.type: Easing.InQuad
         onFinished: {
-            // Actually hide the window when fade completes
             root.visible = false
         }
     }
@@ -48,21 +48,16 @@ ApplicationWindow {
             pingTime = 0
         }
 
-        // Update data array
         pingData.push(pingTime)
         if (pingData.length > maxDataPoints) {
             pingData.shift()
         }
 
-        // Simple and reliable approach: clear and rebuild the series
         updateChart()
     }
 
     function updateChart() {
-        // Clear existing data
         pingLineSeries.clear()
-
-        // Calculate current max value for proper scaling
         let currentMax = 0
         for (let i = 0; i < pingData.length; i++) {
             if (pingData[i] > currentMax) {
@@ -70,50 +65,37 @@ ApplicationWindow {
             }
         }
 
-        // Set axis with some headroom (20%)
         maxPingValue = currentMax > 0 ? currentMax * 1.2 : 100
         axisY.max = maxPingValue
 
-        // Rebuild series with correct indices
         for (let i = 0; i < pingData.length; i++) {
             pingLineSeries.append(i, pingData[i])
         }
 
-        // Make sure X axis is properly scaled
         axisX.min = 0
         axisX.max = maxDataPoints - 1
     }
 
     function toggleVisibility() {
         if (root.visible) {
-            // Start fade out animation
             fadeOut.start()
-            // The window will be hidden when animation finishes
         } else {
-            // Show window but with 0 opacity
             root.opacity = 0.0
             root.visible = true
             root.raise()
             root.requestActivate()
 
-            // Position at top right
             positionTopRight()
-
-            // Start fade in animation
             fadeIn.start()
         }
     }
 
-    // Function to position the window at the top right
     function positionTopRight() {
-        // Get the current screen
-        let currentScreen = Qt.application.screens[0]  // Primary screen
+        let currentScreen = Qt.application.screens[0]
 
-        // Calculate position (top right with 15px margin)
         let xPos = currentScreen.width - root.width - 15
         let yPos = 15
 
-        // Set window position
         root.x = xPos
         root.y = yPos
     }
@@ -136,14 +118,11 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
-        // Start ping service
         PingService.targetHost = "8.8.8.8"
         PingService.startPinging()
 
-        // Position window at top right on startup
         positionTopRight()
 
-        // Start with fade in
         root.opacity = 0.0
         fadeIn.start()
     }
@@ -202,5 +181,9 @@ ApplicationWindow {
                 width: 2.5
             }
         }
+    }
+
+    SettingsWindow {
+        id: settingsWindow
     }
 }
