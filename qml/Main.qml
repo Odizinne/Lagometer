@@ -19,8 +19,34 @@ ApplicationWindow {
     opacity: UserSettings.opacity
 
     property var pingData: []
+    property var pendingPingData: []
     property int maxDataPoints: 60
     property double maxPingValue: 100
+    property bool isAnimating: false
+    property int animationSteps: 60 // 60 steps for smooth animation
+    property int currentAnimationStep: 0
+
+    // Animation timer for continuous line drawing
+    Timer {
+        id: animationTimer
+        interval: 1000 / animationSteps // ~16ms for 60fps
+        repeat: true
+        onTriggered: {
+            if (currentAnimationStep < animationSteps && pingData.length > 0) {
+                updateChartWithAnimation()
+                currentAnimationStep++
+            } else {
+                stop()
+                isAnimating = false
+                currentAnimationStep = 0
+
+                // If we have more pending data, start next animation
+                if (pendingPingData.length > 0) {
+                    startNextAnimation()
+                }
+            }
+        }
+    }
 
     NumberAnimation {
         id: fadeIn
@@ -101,6 +127,10 @@ ApplicationWindow {
 
     function clearChart() {
         pingData = []
+        pendingPingData = []
+        animationTimer.stop()
+        isAnimating = false
+        currentAnimationStep = 0
 
         pingLineSeries.clear()
 
@@ -114,12 +144,77 @@ ApplicationWindow {
             pingTime = 0
         }
 
-        pingData.push(pingTime)
+        // Add to pending data instead of immediate pingData
+        pendingPingData.push(pingTime)
+
+        // Start animation if not already running
+        if (!isAnimating) {
+            startNextAnimation()
+        }
+    }
+
+    function startNextAnimation() {
+        if (pendingPingData.length === 0) return
+
+        // Move one data point from pending to actual data
+        let newPoint = pendingPingData.shift()
+        pingData.push(newPoint)
+
         if (pingData.length > maxDataPoints) {
             pingData.shift()
         }
 
-        updateChart()
+        isAnimating = true
+        currentAnimationStep = 0
+        animationTimer.start()
+    }
+
+    function updateChartWithAnimation() {
+        pingLineSeries.clear()
+
+        // Calculate max value for scaling
+        let currentMax = 0
+        for (let i = 0; i < pingData.length; i++) {
+            if (pingData[i] > currentMax) {
+                currentMax = pingData[i]
+            }
+        }
+
+        maxPingValue = currentMax > 0 ? currentMax * 1.2 : 100
+        axisY.max = maxPingValue
+
+        const totalSeconds = 60
+        const pointSpacing = totalSeconds / (maxDataPoints - 1)
+
+        // Calculate how many points to show based on animation progress
+        if (pingData.length > 1) {
+            // For the last segment, interpolate based on animation progress
+            let progress = currentAnimationStep / animationSteps
+            let lastCompletePoint = pingData.length - 2
+
+            // Draw all complete points
+            for (let i = 0; i <= lastCompletePoint; i++) {
+                let timePoint = i * pointSpacing
+                pingLineSeries.append(timePoint, pingData[i])
+            }
+
+            // Draw the animated segment
+            if (lastCompletePoint >= 0) {
+                let startValue = pingData[lastCompletePoint]
+                let endValue = pingData[lastCompletePoint + 1]
+                let currentValue = startValue + (endValue - startValue) * progress
+
+                let startTime = lastCompletePoint * pointSpacing
+                let endTime = (lastCompletePoint + 1) * pointSpacing
+                let currentTime = startTime + (endTime - startTime) * progress
+
+                pingLineSeries.append(currentTime, currentValue)
+            }
+        } else if (pingData.length === 1) {
+            // First point - animate it appearing
+            let progress = currentAnimationStep / animationSteps
+            pingLineSeries.append(0, pingData[0] * progress)
+        }
     }
 
     function updateChart() {
